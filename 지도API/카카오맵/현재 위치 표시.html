@@ -1,0 +1,63 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>현재 위치 표시</title>
+
+    <style>
+        .container { max-width: 100%; width: 1000px; margin: 0 auto; }
+        #map { width: 100%; height: 600px; }
+        #status { margin: 10px 0; padding: 10px; background: #f4f4f4; }
+        .info { padding: 6px 10px; font-size: 13px; white-space: nowrap; }
+    </style>
+
+    <script src="kakao-loader.js"></script>
+</head>
+
+<body>
+
+  <div class="container">
+    <h1>현재 위치 표시</h1>
+    <div id="status">현재 위치를 확인하는 중입니다...</div>
+    <button onclick="locate()">내 위치로 이동</button>
+    <div id="map"></div>
+  </div>
+
+  <script>
+    loadKakao().then(function () {
+      const map = new kakao.maps.Map(document.getElementById('map'), {
+          center: new kakao.maps.LatLng(37.5665, 126.9780),
+          level: 3
+      });
+
+      const statusEl = document.getElementById('status');
+      const marker = new kakao.maps.Marker();
+      const infowindow = new kakao.maps.InfoWindow({ content: '<div class="info">현재 위치</div>' });
+
+      function locate() {
+          if (!navigator.geolocation) {
+              statusEl.textContent = '이 브라우저는 위치 정보를 지원하지 않습니다.';
+              return;
+          }
+
+          navigator.geolocation.getCurrentPosition(function (pos) {
+              const latlng = new kakao.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
+
+              marker.setPosition(latlng);
+              marker.setMap(map);
+              infowindow.open(map, marker);
+              map.setCenter(latlng);
+
+              statusEl.textContent = '위도: ' + pos.coords.latitude + ' / 경도: ' + pos.coords.longitude;
+          }, function (err) {
+              statusEl.textContent = '위치를 가져올 수 없습니다: ' + err.message + ' (https 또는 localhost 에서 실행해야 합니다)';
+          }, { enableHighAccuracy: true, timeout: 10000 });
+      }
+
+      locate();
+      window.locate = locate;
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>다중경로</title>
+
+    <style>
+        .container { max-width: 100%; width: 1000px; margin: 0 auto; }
+        #map { width: 100%; height: 600px; }
+        #legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 10px 0; }
+        #legend label { cursor: pointer; font-size: 14px; }
+        #legend i { display: inline-block; width: 24px; height: 4px; vertical-align: middle; margin-right: 4px; }
+    </style>
+
+    <script src="kakao-loader.js"></script>
+</head>
+
+<body>
+
+  <div class="container">
+    <h1>다중경로</h1>
+    <div id="legend"></div>
+    <div id="map"></div>
+  </div>
+
+  <script>
+    loadKakao().then(function () {
+      const map = new kakao.maps.Map(document.getElementById('map'), {
+          center: new kakao.maps.LatLng(37.5665, 126.9780),
+          level: 6
+      });
+
+      const routes = [
+          {
+              name: '서울역 → 경복궁', color: '#FF3B30',
+              points: [[37.5547, 126.9707], [37.5665, 126.9780], [37.5796, 126.9770]]
+          },
+          {
+              name: '서울시청 → 남산서울타워', color: '#2d6cdf',
+              points: [[37.5665, 126.9780], [37.5600, 126.9830], [37.5512, 126.9882]]
+          },
+          {
+              name: '서울시청 → 동대문디자인플라자', color: '#34C759',
+              points: [[37.5665, 126.9780], [37.5660, 126.9900], [37.5671, 127.0092]]
+          }
+      ];
+
+      const bounds = new kakao.maps.LatLngBounds();
+      const legend = document.getElementById('legend');
+
+      routes.forEach(function (route) {
+          const path = route.points.map(function (p) {
+              const latlng = new kakao.maps.LatLng(p[0], p[1]);
+              bounds.extend(latlng);
+              return latlng;
+          });
+
+          const polyline = new kakao.maps.Polyline({
+              map: map,
+              path: path,
+              strokeWeight: 5,
+              strokeColor: route.color,
+              strokeOpacity: 0.8
+          });
+
+          const km = (polyline.getLength() / 1000).toFixed(2);
+          const label = document.createElement('label');
+          label.innerHTML = '<input type="checkbox" checked><i style="background:' + route.color + '"></i>' + route.name + ' (' + km + ' km)';
+          label.querySelector('input').onchange = function (e) {
+              polyline.setMap(e.target.checked ? map : null);
+          };
+          legend.appendChild(label);
+      });
+
+      map.setBounds(bounds);
+    });
+  </script>
+
+</body>
+</html>

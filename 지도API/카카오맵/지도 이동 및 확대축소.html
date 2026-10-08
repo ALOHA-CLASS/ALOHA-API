@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>지도 이동 및 확대/축소</title>
+
+    <style>
+        .container { max-width: 100%; width: 1000px; margin: 0 auto; }
+        #map { width: 100%; height: 600px; }
+        .buttons { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+        #status { margin-bottom: 10px; padding: 10px; background: #f4f4f4; }
+    </style>
+
+    <script src="kakao-loader.js"></script>
+</head>
+
+<body>
+
+  <div class="container">
+    <h1>지도 이동 및 확대/축소</h1>
+
+    <div class="buttons">
+      <button onclick="moveCenter(37.5665, 126.9780)">서울시청 (setCenter)</button>
+      <button onclick="panTo(35.1796, 129.0756)">부산 (panTo)</button>
+      <button onclick="panTo(33.4996, 126.5312)">제주 (panTo)</button>
+      <button onclick="panBy(-100, 0)">← 100px</button>
+      <button onclick="panBy(100, 0)">→ 100px</button>
+      <button onclick="panBy(0, -100)">↑ 100px</button>
+      <button onclick="panBy(0, 100)">↓ 100px</button>
+      <button onclick="zoom(-1)">확대 (+)</button>
+      <button onclick="zoom(1)">축소 (-)</button>
+      <button onclick="setLevel(3)">레벨 3</button>
+      <button onclick="setLevel(10)">레벨 10</button>
+    </div>
+
+    <div id="status"></div>
+    <div id="map"></div>
+  </div>
+
+  <script>
+    loadKakao().then(function () {
+      const map = new kakao.maps.Map(document.getElementById('map'), {
+          center: new kakao.maps.LatLng(37.5665, 126.9780),
+          level: 3
+      });
+
+      const statusEl = document.getElementById('status');
+
+      function moveCenter(lat, lng) {
+          map.setCenter(new kakao.maps.LatLng(lat, lng));
+      }
+
+      function panTo(lat, lng) {
+          map.panTo(new kakao.maps.LatLng(lat, lng));
+      }
+
+      function panBy(dx, dy) {
+          map.panBy(dx, dy);
+      }
+
+      function setLevel(level) {
+          map.setLevel(level, { animate: true });
+      }
+
+      // 레벨이 작을수록 확대
+      function zoom(delta) {
+          map.setLevel(map.getLevel() + delta, { animate: true });
+      }
+
+      function updateStatus() {
+          const c = map.getCenter();
+          statusEl.textContent = '레벨: ' + map.getLevel() + ' / 중심 위도: ' + c.getLat().toFixed(6) + ' / 중심 경도: ' + c.getLng().toFixed(6);
+      }
+
+      kakao.maps.event.addListener(map, 'idle', updateStatus);
+      updateStatus();
+
+      window.moveCenter = moveCenter;
+      window.panTo = panTo;
+      window.panBy = panBy;
+      window.zoom = zoom;
+      window.setLevel = setLevel;
+    });
+  </script>
+
+</body>
+</html>

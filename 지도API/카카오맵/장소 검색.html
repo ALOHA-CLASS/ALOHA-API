@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>장소 검색</title>
+
+    <style>
+        .container { max-width: 100%; width: 1000px; margin: 0 auto; }
+        .wrap { display: flex; gap: 10px; }
+        #map { flex: 1; height: 600px; }
+        #list { width: 280px; height: 600px; overflow-y: auto; margin: 0; padding: 0; list-style: none; border: 1px solid #ddd; }
+        #list li { padding: 8px; border-bottom: 1px solid #eee; cursor: pointer; font-size: 14px; }
+        #list li:hover { background: #f4f4f4; }
+        #list small { color: #777; }
+        .form { display: flex; gap: 6px; margin-bottom: 10px; }
+        #keyword { flex: 1; padding: 6px; }
+        .info { padding: 6px 10px; font-size: 13px; white-space: nowrap; }
+    </style>
+
+    <script src="kakao-loader.js"></script>
+</head>
+
+<body>
+
+  <div class="container">
+    <h1>장소 검색</h1>
+
+    <form class="form" onsubmit="search(); return false;">
+      <input type="text" id="keyword" value="서울시청 맛집" placeholder="검색어를 입력하세요">
+      <button type="submit">검색</button>
+    </form>
+
+    <div class="wrap">
+      <div id="map"></div>
+      <ul id="list"></ul>
+    </div>
+  </div>
+
+  <script>
+    loadKakao('services').then(function () {
+      const map = new kakao.maps.Map(document.getElementById('map'), {
+          center: new kakao.maps.LatLng(37.5665, 126.9780),
+          level: 4
+      });
+
+      const ps = new kakao.maps.services.Places();
+      const infowindow = new kakao.maps.InfoWindow({ zIndex: 1 });
+      const list = document.getElementById('list');
+      let markers = [];
+
+      function search() {
+          const keyword = document.getElementById('keyword').value.trim();
+          if (!keyword) return;
+          ps.keywordSearch(keyword, onResult);
+      }
+
+      function onResult(data, status) {
+          clear();
+
+          if (status === kakao.maps.services.Status.ZERO_RESULT) {
+              list.innerHTML = '<li>검색 결과가 없습니다.</li>';
+              return;
+          }
+          if (status !== kakao.maps.services.Status.OK) {
+              list.innerHTML = '<li>검색 중 오류가 발생했습니다.</li>';
+              return;
+          }
+
+          const bounds = new kakao.maps.LatLngBounds();
+
+          data.forEach(function (place) {
+              const position = new kakao.maps.LatLng(place.y, place.x);
+              const marker = new kakao.maps.Marker({ position: position, map: map });
+              const show = function () {
+                  infowindow.setContent('<div class="info">' + place.place_name + '</div>');
+                  infowindow.open(map, marker);
+              };
+
+              kakao.maps.event.addListener(marker, 'click', show);
+              markers.push(marker);
+              bounds.extend(position);
+
+              const li = document.createElement('li');
+              const name = document.createElement('strong');
+              name.textContent = place.place_name;
+              const addr = document.createElement('small');
+              addr.textContent = place.road_address_name || place.address_name;
+              li.append(name, document.createElement('br'), addr);
+              li.onclick = function () {
+                  map.panTo(position);
+                  show();
+              };
+              list.appendChild(li);
+          });
+
+          map.setBounds(bounds);
+      }
+
+      function clear() {
+          markers.forEach(function (m) { m.setMap(null); });
+          markers = [];
+          infowindow.close();
+          list.innerHTML = '';
+      }
+
+      window.search = search;
+      search();
+    });
+  </script>
+
+</body>
+</html>

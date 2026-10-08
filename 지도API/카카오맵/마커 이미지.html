@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>마커 이미지</title>
+
+    <style>
+        .container { max-width: 100%; width: 1000px; margin: 0 auto; }
+        #map { width: 100%; height: 600px; }
+    </style>
+
+    <script src="kakao-loader.js"></script>
+</head>
+
+<body>
+
+  <div class="container">
+    <h1>마커 이미지</h1>
+    <div id="map"></div>
+  </div>
+
+  <script>
+    loadKakao().then(function () {
+      const map = new kakao.maps.Map(document.getElementById('map'), {
+          center: new kakao.maps.LatLng(37.5665, 126.9780),
+          level: 4
+      });
+
+      const imageSrc = 'img/shop.png';
+      const imageSize = new kakao.maps.Size(48, 48);
+      // 핀의 끝 지점이 좌표에 오도록 기준점 지정
+      const imageOption = { offset: new kakao.maps.Point(24, 46) };
+
+      const markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize, imageOption);
+
+      const positions = [
+          new kakao.maps.LatLng(37.5665, 126.9780),
+          new kakao.maps.LatLng(37.5690, 126.9820),
+          new kakao.maps.LatLng(37.5640, 126.9740)
+      ];
+
+      positions.forEach(function (position) {
+          new kakao.maps.Marker({
+              position: position,
+              image: markerImage,
+              map: map
+          });
+      });
+    });
+  </script>
+
+</body>
+</html>

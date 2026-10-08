@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>주소 → 좌표 변환</title>
+
+    <style>
+        .container { max-width: 100%; width: 1000px; margin: 0 auto; }
+        #map { width: 100%; height: 500px; margin-top: 10px; }
+        .form { display: flex; gap: 6px; }
+        #address { flex: 1; padding: 6px; }
+        #result { margin-top: 10px; padding: 10px; background: #f4f4f4; }
+    </style>
+
+    <script src="kakao-loader.js"></script>
+</head>
+
+<body>
+
+  <div class="container">
+    <h1>주소 → 좌표 변환</h1>
+
+    <form class="form" onsubmit="convert(); return false;">
+      <input type="text" id="address" value="서울특별시 중구 세종대로 110" placeholder="주소를 입력하세요">
+      <button type="submit">변환</button>
+    </form>
+
+    <div id="result">주소를 입력하고 변환 버튼을 누르세요.</div>
+    <div id="map"></div>
+  </div>
+
+  <script>
+    loadKakao('services').then(function () {
+      const map = new kakao.maps.Map(document.getElementById('map'), {
+          center: new kakao.maps.LatLng(37.5665, 126.9780),
+          level: 3
+      });
+
+      const geocoder = new kakao.maps.services.Geocoder();
+      const marker = new kakao.maps.Marker();
+      const result = document.getElementById('result');
+
+      function convert() {
+          const address = document.getElementById('address').value.trim();
+          if (!address) return;
+
+          geocoder.addressSearch(address, function (data, status) {
+              if (status !== kakao.maps.services.Status.OK) {
+                  result.textContent = '검색 결과가 없습니다.';
+                  return;
+              }
+
+              const coords = new kakao.maps.LatLng(data[0].y, data[0].x);
+
+              marker.setPosition(coords);
+              marker.setMap(map);
+              map.setCenter(coords);
+
+              result.textContent = data[0].address_name + ' → 위도: ' + data[0].y + ' / 경도: ' + data[0].x;
+          });
+      }
+
+      window.convert = convert;
+      convert();
+    });
+  </script>
+
+</body>
+</html>

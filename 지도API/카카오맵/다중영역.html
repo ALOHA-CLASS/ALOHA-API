@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>다중영역</title>
+
+    <style>
+        .container { max-width: 100%; width: 1000px; margin: 0 auto; }
+        #map { width: 100%; height: 600px; }
+        #result { margin: 10px 0; padding: 10px; background: #f4f4f4; }
+    </style>
+
+    <script src="kakao-loader.js"></script>
+</head>
+
+<body>
+
+  <div class="container">
+    <h1>다중영역</h1>
+    <div id="result">영역을 클릭하면 이름과 면적이 표시됩니다.</div>
+    <div id="map"></div>
+  </div>
+
+  <script>
+    loadKakao().then(function () {
+      const map = new kakao.maps.Map(document.getElementById('map'), {
+          center: new kakao.maps.LatLng(37.5665, 126.9780),
+          level: 6
+      });
+
+      const result = document.getElementById('result');
+
+      function area(shape, name, color) {
+          const normal = { fillColor: color, fillOpacity: 0.4 };
+          shape.setOptions(normal);
+
+          kakao.maps.event.addListener(shape, 'mouseover', function () {
+              shape.setOptions({ fillOpacity: 0.7 });
+          });
+          kakao.maps.event.addListener(shape, 'mouseout', function () {
+              shape.setOptions(normal);
+          });
+          kakao.maps.event.addListener(shape, 'click', function () {
+              result.textContent = name + ' / 면적: 약 ' + Math.round(shape.getArea()).toLocaleString() + ' ㎡';
+          });
+      }
+
+      // 다각형: 경복궁 일대
+      const polygon = new kakao.maps.Polygon({
+          map: map,
+          path: [
+              new kakao.maps.LatLng(37.5830, 126.9740),
+              new kakao.maps.LatLng(37.5830, 126.9800),
+              new kakao.maps.LatLng(37.5770, 126.9810),
+              new kakao.maps.LatLng(37.5770, 126.9730)
+          ],
+          strokeWeight: 3,
+          strokeColor: '#FF3B30'
+      });
+      area(polygon, '다각형: 경복궁 일대', '#FF9E99');
+
+      // 사각형: 서울시청 일대
+      const rectangle = new kakao.maps.Rectangle({
+          map: map,
+          bounds: new kakao.maps.LatLngBounds(
+              new kakao.maps.LatLng(37.5620, 126.9740),
+              new kakao.maps.LatLng(37.5700, 126.9830)
+          ),
+          strokeWeight: 3,
+          strokeColor: '#2d6cdf'
+      });
+      area(rectangle, '사각형: 서울시청 일대', '#99C2FF');
+
+      // 원: 남산서울타워 반경 800m
+      const circle = new kakao.maps.Circle({
+          map: map,
+          center: new kakao.maps.LatLng(37.5512, 126.9882),
+          radius: 800,
+          strokeWeight: 3,
+          strokeColor: '#34C759'
+      });
+      area(circle, '원: 남산서울타워 반경 800m', '#A2FF99');
+
+      // 타원: 동대문디자인플라자 일대
+      const ellipse = new kakao.maps.Ellipse({
+          map: map,
+          center: new kakao.maps.LatLng(37.5671, 127.0092),
+          rx: 1000,
+          ry: 600,
+          strokeWeight: 3,
+          strokeColor: '#FF9500'
+      });
+      area(ellipse, '타원: 동대문디자인플라자 일대', '#FFD699');
+    });
+  </script>
+
+</body>
+</html>

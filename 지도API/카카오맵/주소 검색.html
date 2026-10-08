@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>주소 검색</title>
+
+    <style>
+        .container { max-width: 100%; width: 1000px; margin: 0 auto; }
+        #map { width: 100%; height: 500px; margin-top: 10px; }
+        .form { display: flex; gap: 6px; }
+        .form input { padding: 6px; }
+        #address { flex: 1; }
+    </style>
+
+    <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+    <script src="kakao-loader.js"></script>
+</head>
+
+<body>
+
+  <div class="container">
+    <h1>주소 검색</h1>
+    <p>우편번호 서비스로 주소를 검색하면 해당 위치가 지도에 표시됩니다.</p>
+
+    <div class="form">
+      <input type="text" id="postcode" placeholder="우편번호" readonly>
+      <input type="button" value="주소 검색" onclick="searchAddress()">
+      <input type="text" id="address" placeholder="주소" readonly>
+    </div>
+
+    <div id="map"></div>
+  </div>
+
+  <script>
+    loadKakao('services').then(function () {
+      const map = new kakao.maps.Map(document.getElementById('map'), {
+          center: new kakao.maps.LatLng(37.5665, 126.9780),
+          level: 3
+      });
+
+      const geocoder = new kakao.maps.services.Geocoder();
+      const marker = new kakao.maps.Marker();
+
+      function searchAddress() {
+          new daum.Postcode({
+              oncomplete: function (data) {
+                  const addr = data.userSelectedType === 'R' ? data.roadAddress : data.jibunAddress;
+
+                  document.getElementById('postcode').value = data.zonecode;
+                  document.getElementById('address').value = addr;
+
+                  geocoder.addressSearch(addr, function (result, status) {
+                      if (status !== kakao.maps.services.Status.OK) return;
+
+                      const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+                      marker.setPosition(coords);
+                      marker.setMap(map);
+                      map.setCenter(coords);
+                  });
+              }
+          }).open();
+      }
+      window.searchAddress = searchAddress;
+    });
+  </script>
+
+</body>
+</html>
