@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>키워드 장소 검색</title>
+
+    <style>
+        .container { max-width: 100%; width: 1000px; margin: 0 auto; }
+        .wrap { display: flex; gap: 10px; }
+        #map { flex: 1; height: 600px; }
+
+        .side { width: 300px; height: 600px; display: flex; flex-direction: column; border: 1px solid #ddd; }
+        .form { display: flex; gap: 6px; padding: 8px; border-bottom: 1px solid #ddd; }
+        #keyword { flex: 1; padding: 6px; min-width: 0; }
+
+        #placesList { flex: 1; overflow-y: auto; margin: 0; padding: 0; list-style: none; }
+        #placesList .item { display: flex; gap: 8px; padding: 10px 8px; border-bottom: 1px solid #eee; cursor: pointer; font-size: 13px; }
+        #placesList .item:hover, #placesList .item.on { background: #f4f8ff; }
+        #placesList .empty { padding: 16px; color: #777; text-align: center; cursor: default; }
+        #placesList .num { flex: none; width: 24px; height: 24px; line-height: 24px; border-radius: 50%; background: #2d6cdf; color: #fff; text-align: center; font-size: 12px; font-weight: bold; }
+        #placesList .name { margin: 0 0 4px; font-size: 14px; }
+        #placesList .name a { color: inherit; text-decoration: none; }
+        #placesList .name a:hover { text-decoration: underline; }
+        #placesList .gray { color: #777; display: block; }
+        #placesList .tel { color: #2a8a3a; display: block; }
+        #placesList .category { color: #999; font-size: 12px; margin-left: 4px; font-weight: normal; }
+
+        #pagination { display: flex; justify-content: center; gap: 4px; padding: 8px; border-top: 1px solid #ddd; }
+        #pagination a { padding: 2px 8px; border: 1px solid #ddd; color: #333; text-decoration: none; }
+        #pagination a.on { background: #2d6cdf; border-color: #2d6cdf; color: #fff; font-weight: bold; cursor: default; }
+
+        .iw { padding: 6px 10px; font-size: 13px; white-space: nowrap; }
+    </style>
+
+    <script src="kakao-loader.js"></script>
+</head>
+
+<body>
+
+  <div class="container">
+    <h1>키워드 장소 검색</h1>
+
+    <div class="wrap">
+      <div class="side">
+        <form class="form" id="searchForm">
+          <input type="text" id="keyword" value="서울시청 맛집" placeholder="검색어를 입력하세요">
+          <button type="submit">검색</button>
+        </form>
+        <ul id="placesList"></ul>
+        <div id="pagination"></div>
+      </div>
+      <div id="map"></div>
+    </div>
+  </div>
+
+  <script>
+    loadKakao('services').then(function () {
+      const map = new kakao.maps.Map(document.getElementById('map'), {
+          center: new kakao.maps.LatLng(37.5665, 126.9780),
+          level: 4
+      });
+
+      const ps = new kakao.maps.services.Places();
+      const infowindow = new kakao.maps.InfoWindow({ zIndex: 1 });
+      const listEl = document.getElementById('placesList');
+      const paginationEl = document.getElementById('pagination');
+      const keywordEl = document.getElementById('keyword');
+      let markers = [];
+
+      document.getElementById('searchForm').addEventListener('submit', function (e) {
+          e.preventDefault();
+          searchPlaces();
+      });
+
+      function searchPlaces() {
+          const keyword = keywordEl.value.trim();
+          if (!keyword) {
+              alert('키워드를 입력해주세요!');
+              keywordEl.focus();
+              return;
+          }
+          ps.keywordSearch(keyword, placesSearchCB);
+      }
+
+      // 검색 완료 콜백. 페이지 이동(gotoPage) 시에도 다시 호출됨
+      function placesSearchCB(data, status, pagination) {
+          if (status === kakao.maps.services.Status.OK) {
+              displayPlaces(data);
+              displayPagination(pagination);
+          } else if (status === kakao.maps.services.Status.ZERO_RESULT) {
+              showMessage('검색 결과가 존재하지 않습니다.');
+          } else {
+              showMessage('검색 중 오류가 발생했습니다.');
+          }
+      }
+
+      function showMessage(text) {
+          clearAll();
+          const li = document.createElement('li');
+          li.className = 'empty';
+          li.textContent = text;
+          listEl.appendChild(li);
+      }
+
+      function displayPlaces(places) {
+          clearAll();
+
+          const bounds = new kakao.maps.LatLngBounds();
+          const fragment = document.createDocumentFragment();
+
+          places.forEach(function (place, i) {
+              const position = new kakao.maps.LatLng(place.y, place.x);
+              const marker = addMarker(position, i);
+              const item = createListItem(i, place);
+
+              bounds.extend(position);
+
+              const open = function () { displayInfowindow(marker, place.place_name); };
+              const close = function () { infowindow.close(); };
+
+              kakao.maps.event.addListener(marker, 'mouseover', open);
+              kakao.maps.event.addListener(marker, 'mouseout', close);
+              kakao.maps.event.addListener(marker, 'click', function () {
+                  select(item);
+                  item.scrollIntoView({ block: 'nearest' });
+              });
+
+              item.addEventListener('mouseover', open);
+              item.addEventListener('mouseout', close);
+              item.addEventListener('click', function () {
+                  select(item);
+                  map.panTo(position);
+                  open();
+              });
+
+              fragment.appendChild(item);
+          });
+
+          listEl.appendChild(fragment);
+          listEl.scrollTop = 0;
+          map.setBounds(bounds);
+      }
+
+      function select(item) {
+          const prev = listEl.querySelector('.item.on');
+          if (prev) prev.classList.remove('on');
+          item.classList.add('on');
+      }
+
+      // 장소 정보는 textContent 로만 넣어 HTML 이 해석되지 않도록 함
+      function createListItem(index, place) {
+          const li = document.createElement('li');
+          li.className = 'item';
+
+          const num = document.createElement('span');
+          num.className = 'num';
+          num.textContent = index + 1;
+
+          const info = document.createElement('div');
+
+          const title = document.createElement('h5');
+          title.className = 'name';
+          const link = document.createElement('a');
+          link.textContent = place.place_name;
+          if (place.place_url) {
+              link.href = place.place_url;
+              link.target = '_blank';
+              link.rel = 'noopener';
+              link.addEventListener('click', function (e) { e.stopPropagation(); });
+          }
+          title.appendChild(link);
+          if (place.category_group_name) {
+              const cat = document.createElement('span');
+              cat.className = 'category';
+              cat.textContent = place.category_group_name;
+              title.appendChild(cat);
+          }
+          info.appendChild(title);
+
+          const addresses = place.road_address_name
+              ? [place.road_address_name, '(지번) ' + place.address_name]
+              : [place.address_name];
+          addresses.forEach(function (text) {
+              const span = document.createElement('span');
+              span.className = 'gray';
+              span.textContent = text;
+              info.appendChild(span);
+          });
+
+          if (place.phone) {
+              const tel = document.createElement('span');
+              tel.className = 'tel';
+              tel.textContent = place.phone;
+              info.appendChild(tel);
+          }
+
+          li.append(num, info);
+          return li;
+      }
+
+      // 번호가 그려진 스프라이트 이미지로 마커 생성 (한 페이지 최대 15개)
+      function addMarker(position, idx) {
+          const image = new kakao.maps.MarkerImage(
+              'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_number_blue.png',
+              new kakao.maps.Size(36, 37),
+              {
+                  spriteSize: new kakao.maps.Size(36, 691),
+                  spriteOrigin: new kakao.maps.Point(0, idx * 46 + 10),
+                  offset: new kakao.maps.Point(13, 37)
+              }
+          );
+
+          const marker = new kakao.maps.Marker({ position: position, image: image, map: map });
+          markers.push(marker);
+          return marker;
+      }
+
+      function displayPagination(pagination) {
+          paginationEl.innerHTML = '';
+
+          for (let i = 1; i <= pagination.last; i++) {
+              const a = document.createElement('a');
+              a.href = '#';
+              a.textContent = i;
+
+              if (i === pagination.current) {
+                  a.className = 'on';
+              } else {
+                  a.addEventListener('click', function (e) {
+                      e.preventDefault();
+                      pagination.gotoPage(i);
+                  });
+              }
+              paginationEl.appendChild(a);
+          }
+      }
+
+      function displayInfowindow(marker, title) {
+          const content = document.createElement('div');
+          content.className = 'iw';
+          content.textContent = title;
+
+          infowindow.setContent(content);
+          infowindow.open(map, marker);
+      }
+
+      function clearAll() {
+          markers.forEach(function (m) { m.setMap(null); });
+          markers = [];
+          infowindow.close();
+          listEl.innerHTML = '';
+          paginationEl.innerHTML = '';
+      }
+
+      searchPlaces();
+    });
+  </script>
+
+</body>
+</html>

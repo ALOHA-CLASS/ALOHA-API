@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>로드뷰</title>
+
+    <style>
+        .container { max-width: 100%; width: 1000px; margin: 0 auto; }
+        .wrap { display: flex; gap: 10px; }
+        #map, #roadview { flex: 1; height: 600px; }
+        #result { margin: 10px 0; padding: 10px; background: #f4f4f4; }
+    </style>
+
+    <script src="kakao-loader.js"></script>
+</head>
+
+<body>
+
+  <div class="container">
+    <h1>로드뷰</h1>
+    <p>지도에서 파란 선(로드뷰 제공 구간) 근처를 클릭하면 해당 위치의 로드뷰가 표시됩니다.</p>
+    <div id="result">지도를 클릭해 보세요.</div>
+
+    <div class="wrap">
+      <div id="map"></div>
+      <div id="roadview"></div>
+    </div>
+  </div>
+
+  <script>
+    loadKakao().then(function () {
+      const center = new kakao.maps.LatLng(37.5665, 126.9780);
+
+      const map = new kakao.maps.Map(document.getElementById('map'), {
+          center: center,
+          level: 3
+      });
+      // 로드뷰가 제공되는 도로를 지도 위에 표시
+      map.addOverlayMapTypeId(kakao.maps.MapTypeId.ROADVIEW);
+
+      const roadview = new kakao.maps.Roadview(document.getElementById('roadview'));
+      const roadviewClient = new kakao.maps.RoadviewClient();
+      const marker = new kakao.maps.Marker({ position: center, map: map, draggable: true });
+      const result = document.getElementById('result');
+
+      function showRoadview(position) {
+          // 반경 50m 안에서 가장 가까운 파노라마를 찾음
+          roadviewClient.getNearestPanoId(position, 50, function (panoId) {
+              if (panoId === null) {
+                  result.textContent = '이 위치 근처에는 로드뷰가 없습니다.';
+                  return;
+              }
+              roadview.setPanoId(panoId, position);
+              result.textContent = '위도: ' + position.getLat() + ' / 경도: ' + position.getLng() + ' / panoId: ' + panoId;
+          });
+      }
+
+      // 로드뷰에서 이동하면 지도의 마커도 함께 이동
+      kakao.maps.event.addListener(roadview, 'position_changed', function () {
+          const position = roadview.getPosition();
+          marker.setPosition(position);
+          map.setCenter(position);
+      });
+
+      kakao.maps.event.addListener(map, 'click', function (mouseEvent) {
+          const position = mouseEvent.latLng;
+          marker.setPosition(position);
+          showRoadview(position);
+      });
+
+      kakao.maps.event.addListener(marker, 'dragend', function () {
+          showRoadview(marker.getPosition());
+      });
+
+      showRoadview(center);
+    });
+  </script>
+
+</body>
+</html>
