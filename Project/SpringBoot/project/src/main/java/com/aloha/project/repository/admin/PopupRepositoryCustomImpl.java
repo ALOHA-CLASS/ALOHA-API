@@ -50,13 +50,21 @@ public class PopupRepositoryCustomImpl implements PopupRepositoryCustom {
     return QuerydslUtils.pageInfo(list, total == null ? 0 : total, page, size);
   }
 
+  /**  
+    SELECT *
+    FROM popups
+    WHERE type = ?
+      AND is_show = 1
+      AND started_at <= 🗓
+      AND ended_at >= 🗓
+   */
   @Override
   public List<Popups> findOpenByType(String type, LocalDateTime now) {
     return queryFactory.selectFrom(popups)
         .where(popups.type.eq(type),
                popups.isShow.isTrue(),
-               popups.startedAt.loe(now),
-               popups.endedAt.goe(now))
+               popups.startedAt.loe(now),   // loe : less than or equal to (작거나 같다)
+               popups.endedAt.goe(now))     // goe : greater than or equal to (크거나 같다)
         .fetch();
   }
 
