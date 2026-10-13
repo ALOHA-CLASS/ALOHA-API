@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bootstrap 5 기본 예제</title>
+    <!-- Bootstrap 5 CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    >
+</head>
+<body>
+  <!-- =========================
+       HEADER
+  ========================= -->
+  <header>
+    <nav class="navbar navbar-expand-lg bg-dark navbar-dark">
+      <div class="container">
+        <a class="navbar-brand" href="#">My Website</a>
+        <!-- 모바일 메뉴 버튼 -->
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#mainNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+      </button>
+        <!-- 메뉴 -->
+        <div class="collapse navbar-collapse" id="mainNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link active" href="#">Home</a>
+          </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">About</a>
+          </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">Contact</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+</header>
+  <!-- =========================
+       HERO
+  ========================= -->
+  <section class="bg-primary text-white text-center py-5">
+    <div class="container">
+      <h1 class="display-4 fw-bold">
+        Bootstrap 5
+      </h1>
+      <p class="lead">
+        Bootstrap으로 쉽고 빠르게 반응형 웹사이트를 만들어보세요.
+      </p>
+      <a href="#" class="btn btn-light btn-lg">
+        시작하기
+      </a>
+  </div>
+</section>
+  <!-- =========================
+       OFFCANVAS
+  ========================= -->
+  <section class="container py-5">
+    <h2 class="mb-4">Offcanvas</h2>
+    <!-- 버튼 -->
+    <button
+      class="btn btn-primary"
+      type="button"
+      data-bs-toggle="offcanvas"
+      data-bs-target="#offcanvasMenu"
+    >
+      메뉴 열기
+    </button>
+    <!-- 오프캔버스 -->
+    <div
+      class="offcanvas offcanvas-start"
+      tabindex="-1"
+      id="offcanvasMenu"
+    >
+      <div class="offcanvas-header">
+        <h5 class="offcanvas-title">
+          메뉴
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="offcanvas"
+        ></button>
+    </div>
+      <div class="offcanvas-body">
+        <ul class="list-group">
+          <li class="list-group-item">
+            Home
+          </li>
+          <li class="list-group-item">
+            About
+          </li>
+          <li class="list-group-item">
+            Products
+          </li>
+          <li class="list-group-item">
+            Contact
+          </li>
+      </ul>
+    </div>
+  </div>
+</section>
+  <!-- =========================
+       CARD VIEW
+  ========================= -->
+  <section class="bg-light py-5">
+    <div class="container">
+      <h2 class="text-center mb-5">
+        Card View
+      </h2>
+      <div class="row g-4">
+        <!-- 카드 1 -->
+        <div class="col-md-4">
+          <div class="card h-100">
+            <img
+              src="https://picsum.photos/600/400?random=1"
+              class="card-img-top"
+              alt="이미지"
+            >
+            <div class="card-body">
+              <h5 class="card-title">
+                카드 제목 1
+              </h5>
+              <p class="card-text">
+                Bootstrap의 Card 컴포넌트를 사용한 기본 카드입니다.
+              </p>
+              <a href="#" class="btn btn-primary">
+                자세히 보기
+              </a>
+          </div>
+        </div>
+      </div>
+        <!-- 카드 2 -->
+        <div class="col-md-4">
+          <div class="card h-100">
+            <img
+              src="https://picsum.photos/600/400?random=2"
+              class="card-img-top"
+              alt="이미지"
+            >
+            <div class="card-body">
+              <h5 class="card-title">
+                카드 제목 2
+              </h5>
+              <p class="card-text">
+                Grid 시스템과 Card를 함께 사용할 수 있습니다.
+              </p>
+              <a href="#" class="btn btn-success">
+                자세히 보기
+              </a>
+          </div>
+        </div>
+      </div>
+        <!-- 카드 3 -->
+        <div class="col-md-4">
+          <div class="card h-100">
+            <img
+              src="https://picsum.photos/600/400?random=3"
+              class="card-img-top"
+              alt="이미지"
+            >
+            <div class="card-body">
+              <h5 class="card-title">
+                카드 제목 3
+              </h5>
+              <p class="card-text">
+                화면 크기에 따라 카드의 배치가 자동으로 변경됩니다.
+              </p>
+              <a href="#" class="btn btn-danger">
+                자세히 보기
+              </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+  <!-- =========================
+       FOOTER
+  ========================= -->
+  <footer class="bg-dark text-white py-4">
+    <div class="container text-center">
+      <p class="mb-1">
+        © 2026 My Website
+      </p>
+      <small class="text-secondary">
+        Bootstrap 5 Example
+      </small>
+  </div>
+</footer>
+  <!-- Bootstrap 5 JS -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js">
+  
+</script>
+</body>
+</html>
