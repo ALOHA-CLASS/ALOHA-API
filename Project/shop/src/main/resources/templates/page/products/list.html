@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main_layout}">
+<head>
+  <title>상품 목록</title>
+</head>
+<body layout:fragment="content">
+  
+  <div class="page-head">
+    <h2 class="page-title">SHOP</h2>
+    <p class="page-desc">전체 상품 목록</p>
+  </div>
+
+  <!-- 필터&검색 -->
+  <form class="filter" th:action="@{/products}" method="get">
+    <select name="category">
+      <option value="">전체 카테고리</option>
+      <option th:each="c : ${ {'의류', '가방', '액세서리', '시계', '음향', '가전', '뷰티', '스포츠'} }"
+              th:value="${c}" th:text="${c}"
+              th:selected="${c == productSearch.category}"></option>
+    </select>
+    <input type="text" name="keyword" th:value="${productSearch.keyword}" placeholder="상품명 검색">
+    <button type="submit" class="btn-fill">검색</button>
+  </form>
+
+  <!-- 상품 그리드 -->
+  <ul class="product-grid">
+    <li class="product-card" th:each="p : ${products.content}">
+      <a th:href="@{|/products/${p.id}|}">
+        <div class="thumb">
+          <img th:src="${p.imageUrl}" th:alt="${p.name}">
+        </div>
+        <div class="info">
+          <span class="cate" th:text="${p.category}">카테고리</span>
+          <p class="name" th:text="${p.name}">상품명</p>
+          <p class="price"><b th:text="${ #numbers.formatInteger(p.price, 0, 'COMMA') }">0</b>원</p>
+        </div>
+      </a>
+    </li>
+    <li th:if="${products.empty}" class="empty">검색 결과가 없습니다.</li>
+  </ul>
+
+  <!-- 페이지네이션 -->
+  <th:block th:replace="~{fragments/paging :: paging( ${products} )}"></th:block>
+</body>
+</html>

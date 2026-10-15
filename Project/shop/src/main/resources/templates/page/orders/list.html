@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main_layout}">
+<head>
+  <title>주문내역</title>
+</head>
+<body layout:fragment="content">
+  
+  <div class="page-head">
+    <h2 class="page-title">ORDERS</h2>
+    <div class="page-desc">주문내역</div>
+  </div>
+
+  <table class="order-table" th:if="${!orders.empty}">
+    <thead>
+      <tr>
+        <th>주문번호</th>
+        <th>주문일</th>
+        <th>금액</th>
+        <th>상태</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr th:each="o : ${orders.content}">
+        <td class="ono" th:text="${ #strings.substring(o.orderNo, 0, 8) }">주문번호</td>
+        <td th:text="${ #temporals.format(o.createdAt, 'yyyy-MM-dd HH:mm') }">주문일</td>
+        <td th:text="${ #numbers.formatInteger(o.totalAmount, 0, 'COMMA') } + '원'">0원</td>
+        <td>
+          <span class="badge" th:text="${o.status.label}">상태</span>
+        </td>
+        <td>
+          <a th:href="@{/orders/{no}(no=${o.no})}" class="btn-mini">상세보기</a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="empty" th:if="${orders.empty}">주문내역이 없습니다.</p>
+
+  <!-- 페이지네이션 --> 
+  <th:block th:replace="~{fragments/paging :: paging( ${orders} )}"></th:block>
+
+</body>
+</html>

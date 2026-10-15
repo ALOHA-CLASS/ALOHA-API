@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main_layout}">
+<head>
+  <title>배송지 관리</title>
+</head>
+<body layout:fragment="content">
+  
+  <div class="page-head">
+    <h2 class="page-title">배송지 관리</h2>
+  </div>
+
+  <!-- 배송지 목록 -->
+  <ul class="address-list" th:if="${!#lists.isEmpty(addressList)}">
+    <li th:each="address : ${addressList}" class="address-item">
+      <div class="ai-info">
+        <b th:text="${address.name}">배송지명</b> <br>
+        <b th:text="${address.receiver}">받는 사람</b>
+        <em class="badge" th:if="${address.defaultAddress}">기본 배송지</em>
+        <p th:text="${address.phone}">연락처</p>
+        <p>
+          <span th:text="${address.zipcode}">우편번호</span>
+          <span th:text="${address.address1}">주소</span>
+          <span th:text="${address.address2}">상세주소</span>
+        </p>
+      </div>
+      <div class="btn-row">
+        <!-- ✨타임리프 표현식 -->
+        <!-- ${} : 변수 표현식  / ${object.no} -->
+        <!-- @{} : URL 표현식   / @{/users/mypage}  / Context 경로를 자동 반영 -->
+        <!-- | | : 문자열과 ${} 변수 표현식을 함께 사용-->
+        <a th:href="@{ '/users/mypage/address/update/' + ${address.id} }" class="btn-mini">수정</a>
+        <!-- <a th:href="|/users/mypage/address/update/${address.id}|" class="btn-mini">수정</a> -->
+        <button type="button" class="btn-mini danger" th:if="${!address.defaultAddress}"
+                th:data-id="${address.id}" onclick="deleteAddress(this)">
+          삭제
+        </button>
+      </div>
+    </li>
+  </ul>
+
+  <div class="center">
+    <a class="btn-fill big" th:href="@{/users/mypage/address/add}">새 배송지 추가</a>
+  </div>  
+
+ 
+  <script>
+    // 배송지 삭제
+    async function deleteAddress(button) {
+      const id = $(button).data("id")
+
+      const result = await $confirm({
+        title: "배송지를 삭제하시겠습니까?",
+        text: "삭제한 배송지는 복구할 수 없습니다.",
+        icon: "warning",
+        confirmButtonText: "삭제",
+        cancelButtonText: "취소"
+      })
+      if( !result.isConfirmed ) return
+
+      try {
+        const response = await $ajax({
+                                  url: `/api/address/${id}`,
+                                  method: "DELETE"
+                                })
+        await $toast_({ title: "배송지가 삭제되었습니다." })                                  
+        location.reload()
+      } catch (error) {
+        console.error(error);
+        await $toast({ title: "배송지 삭제에 실패했습니다.", icon: "error" })
+      }
+    }
+  </script>
+
+</body>
+</html>
